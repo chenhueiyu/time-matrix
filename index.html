@@ -62,37 +62,35 @@
         <div class="w-10 h-10 rounded-xl bg-morandi-subtle flex items-center justify-center text-morandi-text text-xl">
           <i class="ph-bold ph-squares-four"></i>
         </div>
-        <h1 class="text-xl md:text-2xl font-semibold tracking-wide text-morandi-text">時間矩陣看板</h1>
+        <div>
+          <h1 class="text-xl md:text-2xl font-semibold tracking-wide text-morandi-text">時間矩陣看板</h1>
+          <span class="text-[11px] text-morandi-muted">未來 7 天行程綜覽 · Google 日曆純讀取模式</span>
+        </div>
       </div>
 
-      <!-- 日期導航 -->
+      <!-- 日期範圍導航 -->
       <div class="flex items-center gap-2 bg-morandi-bg/80 px-3 py-1.5 rounded-xl border border-morandi-border/60">
-        <button onclick="changeDay(-1)" class="p-1.5 hover:bg-white rounded-lg text-morandi-muted hover:text-morandi-text transition">
+        <button onclick="changeDay(-1)" title="前一天基準" class="p-1.5 hover:bg-white rounded-lg text-morandi-muted hover:text-morandi-text transition">
           <i class="ph-bold ph-caret-left"></i>
         </button>
-        <span id="currentDateDisplay" class="text-sm md:text-base font-medium px-2">載入中...</span>
-        <button onclick="changeDay(1)" class="p-1.5 hover:bg-white rounded-lg text-morandi-muted hover:text-morandi-text transition">
+        <span id="currentDateDisplay" class="text-sm md:text-base font-medium px-2 text-morandi-text">載入中...</span>
+        <button onclick="changeDay(1)" title="後一天基準" class="p-1.5 hover:bg-white rounded-lg text-morandi-muted hover:text-morandi-text transition">
           <i class="ph-bold ph-caret-right"></i>
         </button>
         <button onclick="resetToToday()" class="ml-1 text-xs px-2.5 py-1 bg-white hover:bg-morandi-subtle text-morandi-text rounded-lg border border-morandi-border/80 font-medium transition">
-          今天
+          回到今天
         </button>
       </div>
 
       <!-- 右側工具區 -->
       <div class="flex items-center gap-2.5">
         <button onclick="openConfigModal()" class="flex items-center gap-2 px-3.5 py-2 bg-white hover:bg-morandi-subtle border border-morandi-border text-morandi-text rounded-xl text-sm font-medium transition shadow-sm">
-          <i class="ph-bold ph-google-logo text-blue-600"></i>
-          <span>設定</span>
+          <i class="ph-bold ph-sliders text-blue-600"></i>
+          <span>日曆綁定設定</span>
         </button>
 
-        <button onclick="fetchEvents()" title="同步日曆" class="p-2.5 bg-white hover:bg-morandi-subtle border border-morandi-border text-morandi-muted hover:text-morandi-text rounded-xl transition shadow-sm">
+        <button onclick="fetchEvents()" title="即時同步 Google 日曆" class="p-2.5 bg-white hover:bg-morandi-subtle border border-morandi-border text-morandi-muted hover:text-morandi-text rounded-xl transition shadow-sm">
           <i class="ph-bold ph-arrows-clockwise text-base" id="syncIcon"></i>
-        </button>
-
-        <button onclick="openAddTaskModal()" class="flex items-center gap-1.5 px-4 py-2 bg-morandi-text hover:opacity-90 text-white rounded-xl text-sm font-medium transition shadow-sm">
-          <i class="ph-bold ph-plus"></i>
-          <span>新行程</span>
         </button>
       </div>
 
@@ -102,12 +100,12 @@
   <!-- 主內容區 -->
   <main class="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 items-start">
     
-    <!-- 左側：今日時間表 (4 欄寬) -->
-    <section class="lg:col-span-4 bg-white/90 border border-morandi-border rounded-2xl p-5 shadow-sm flex flex-col h-full max-h-[750px]">
+    <!-- 左側：一週日曆時間表 (4 欄寬) -->
+    <section class="lg:col-span-4 bg-white/90 border border-morandi-border rounded-2xl p-5 shadow-sm flex flex-col h-full max-h-[760px]">
       <div class="flex items-center justify-between pb-4 border-b border-morandi-border/60 mb-3">
         <div class="flex items-center gap-2">
           <i class="ph-bold ph-calendar-blank text-lg text-morandi-muted"></i>
-          <h2 class="text-lg font-semibold text-morandi-text">日曆時間表</h2>
+          <h2 class="text-lg font-semibold text-morandi-text">一週時間總表</h2>
         </div>
         <span id="timelineCountBadge" class="text-xs px-2.5 py-1 bg-morandi-subtle text-morandi-muted rounded-full font-medium">0 項行程</span>
       </div>
@@ -127,17 +125,17 @@
     </section>
 
     <!-- 右側：2x2 四象限管理看板 (8 欄寬) -->
-    <section class="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4 h-full max-h-[750px]">
+    <section class="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4 h-full max-h-[760px]">
       
       <!-- 象限 1 -->
-      <div class="bg-white/90 border border-morandi-border rounded-2xl p-4 shadow-sm flex flex-col h-[360px]">
+      <div class="bg-white/90 border border-morandi-border rounded-2xl p-4 shadow-sm flex flex-col h-[368px]">
         <div class="flex items-center justify-between pb-3 border-b border-morandi-border/60 mb-2">
           <div class="flex items-center gap-2">
             <span class="w-3 h-3 rounded-full bg-morandi-q1"></span>
             <input id="q1TitleInput" class="text-base font-semibold text-morandi-text bg-transparent hover:bg-morandi-subtle/50 focus:bg-white px-1 py-0.5 rounded border-b border-transparent focus:border-morandi-q1 outline-none transition" value="重要且緊急" onchange="updateQuadTitle(1, this.value)">
           </div>
           <div class="flex items-center gap-1.5">
-            <span id="q1CalTag" class="text-[11px] px-2 py-0.5 bg-morandi-subtle text-morandi-muted rounded-md font-normal truncate max-w-[90px]">未綁定</span>
+            <span id="q1CalTag" class="text-[11px] px-2 py-0.5 bg-morandi-subtle text-morandi-muted rounded-md font-normal truncate max-w-[100px]">未綁定</span>
             <span id="q1Badge" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-morandi-q1/20 text-morandi-q1">0</span>
           </div>
         </div>
@@ -145,14 +143,14 @@
       </div>
 
       <!-- 象限 2 -->
-      <div class="bg-white/90 border border-morandi-border rounded-2xl p-4 shadow-sm flex flex-col h-[360px]">
+      <div class="bg-white/90 border border-morandi-border rounded-2xl p-4 shadow-sm flex flex-col h-[368px]">
         <div class="flex items-center justify-between pb-3 border-b border-morandi-border/60 mb-2">
           <div class="flex items-center gap-2">
             <span class="w-3 h-3 rounded-full bg-morandi-q2"></span>
             <input id="q2TitleInput" class="text-base font-semibold text-morandi-text bg-transparent hover:bg-morandi-subtle/50 focus:bg-white px-1 py-0.5 rounded border-b border-transparent focus:border-morandi-q2 outline-none transition" value="重要不緊急" onchange="updateQuadTitle(2, this.value)">
           </div>
           <div class="flex items-center gap-1.5">
-            <span id="q2CalTag" class="text-[11px] px-2 py-0.5 bg-morandi-subtle text-morandi-muted rounded-md font-normal truncate max-w-[90px]">未綁定</span>
+            <span id="q2CalTag" class="text-[11px] px-2 py-0.5 bg-morandi-subtle text-morandi-muted rounded-md font-normal truncate max-w-[100px]">未綁定</span>
             <span id="q2Badge" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-morandi-q2/20 text-morandi-q2">0</span>
           </div>
         </div>
@@ -160,14 +158,14 @@
       </div>
 
       <!-- 象限 3 -->
-      <div class="bg-white/90 border border-morandi-border rounded-2xl p-4 shadow-sm flex flex-col h-[360px]">
+      <div class="bg-white/90 border border-morandi-border rounded-2xl p-4 shadow-sm flex flex-col h-[368px]">
         <div class="flex items-center justify-between pb-3 border-b border-morandi-border/60 mb-2">
           <div class="flex items-center gap-2">
             <span class="w-3 h-3 rounded-full bg-morandi-q3"></span>
             <input id="q3TitleInput" class="text-base font-semibold text-morandi-text bg-transparent hover:bg-morandi-subtle/50 focus:bg-white px-1 py-0.5 rounded border-b border-transparent focus:border-morandi-q3 outline-none transition" value="緊急不重要" onchange="updateQuadTitle(3, this.value)">
           </div>
           <div class="flex items-center gap-1.5">
-            <span id="q3CalTag" class="text-[11px] px-2 py-0.5 bg-morandi-subtle text-morandi-muted rounded-md font-normal truncate max-w-[90px]">未綁定</span>
+            <span id="q3CalTag" class="text-[11px] px-2 py-0.5 bg-morandi-subtle text-morandi-muted rounded-md font-normal truncate max-w-[100px]">未綁定</span>
             <span id="q3Badge" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-morandi-q3/20 text-morandi-q3">0</span>
           </div>
         </div>
@@ -175,14 +173,14 @@
       </div>
 
       <!-- 象限 4 -->
-      <div class="bg-white/90 border border-morandi-border rounded-2xl p-4 shadow-sm flex flex-col h-[360px]">
+      <div class="bg-white/90 border border-morandi-border rounded-2xl p-4 shadow-sm flex flex-col h-[368px]">
         <div class="flex items-center justify-between pb-3 border-b border-morandi-border/60 mb-2">
           <div class="flex items-center gap-2">
             <span class="w-3 h-3 rounded-full bg-morandi-q4"></span>
             <input id="q4TitleInput" class="text-base font-semibold text-morandi-text bg-transparent hover:bg-morandi-subtle/50 focus:bg-white px-1 py-0.5 rounded border-b border-transparent focus:border-morandi-q4 outline-none transition" value="稍後思考" onchange="updateQuadTitle(4, this.value)">
           </div>
           <div class="flex items-center gap-1.5">
-            <span id="q4CalTag" class="text-[11px] px-2 py-0.5 bg-morandi-subtle text-morandi-muted rounded-md font-normal truncate max-w-[90px]">未綁定</span>
+            <span id="q4CalTag" class="text-[11px] px-2 py-0.5 bg-morandi-subtle text-morandi-muted rounded-md font-normal truncate max-w-[100px]">未綁定</span>
             <span id="q4Badge" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-morandi-q4/20 text-morandi-q4">0</span>
           </div>
         </div>
@@ -196,11 +194,11 @@
   <footer class="max-w-7xl mx-auto w-full mt-6 flex justify-end">
     <button onclick="resetDefaults()" class="text-xs text-morandi-muted hover:text-morandi-text flex items-center gap-1 transition">
       <i class="ph-bold ph-arrow-counter-clockwise"></i>
-      <span>重設預設配置</span>
+      <span>重設自訂名稱與綁定</span>
     </button>
   </footer>
 
-  <!-- 設定彈窗 (Modal) -->
+  <!-- 設定與日曆綁定彈窗 (Modal) -->
   <div id="configModal" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-xl border border-morandi-border max-h-[90vh] overflow-y-auto custom-scrollbar">
       <div class="flex items-center justify-between pb-3 border-b border-morandi-border">
@@ -234,9 +232,9 @@
         <div class="pt-2 border-t border-morandi-border">
           <h4 class="font-medium text-morandi-text mb-2 flex items-center gap-1.5">
             <i class="ph-bold ph-intersect"></i>
-            <span>四象限對應日曆來源</span>
+            <span>四象限對應 Google 日曆來源</span>
           </h4>
-          <p class="text-xs text-morandi-muted mb-3">請為每個象限挑選要抓取的 Google 日曆（或顏色標籤）：</p>
+          <p class="text-xs text-morandi-muted mb-3">請為各象限指定欲讀取的日曆（行程將自動抓取未來 7 天）：</p>
 
           <div class="space-y-2.5">
             <div class="flex items-center justify-between gap-3 bg-morandi-subtle/30 p-2.5 rounded-xl border border-morandi-border/60">
@@ -255,7 +253,7 @@
                 象限 2
               </span>
               <select id="q2CalSelect" class="cal-select flex-1 text-xs border border-morandi-border rounded-lg p-1.5 bg-white outline-none">
-                <option value="none">-- 未指定 (手動新增) --</option>
+                <option value="none">-- 未指定 --</option>
               </select>
             </div>
 
@@ -265,7 +263,7 @@
                 象限 3
               </span>
               <select id="q3CalSelect" class="cal-select flex-1 text-xs border border-morandi-border rounded-lg p-1.5 bg-white outline-none">
-                <option value="none">-- 未指定 (手動新增) --</option>
+                <option value="none">-- 未指定 --</option>
               </select>
             </div>
 
@@ -275,7 +273,7 @@
                 象限 4
               </span>
               <select id="q4CalSelect" class="cal-select flex-1 text-xs border border-morandi-border rounded-lg p-1.5 bg-white outline-none">
-                <option value="none">-- 未指定 (手動新增) --</option>
+                <option value="none">-- 未指定 --</option>
               </select>
             </div>
           </div>
@@ -286,36 +284,6 @@
       <div class="mt-6 flex justify-end gap-2">
         <button onclick="closeConfigModal()" class="px-4 py-2 border border-morandi-border text-morandi-muted hover:text-morandi-text rounded-xl text-xs font-medium">關閉</button>
         <button onclick="saveConfig()" class="px-4 py-2 bg-morandi-text text-white rounded-xl text-xs font-medium">儲存配置並同步</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 新增行程彈窗 (Modal) -->
-  <div id="addTaskModal" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-morandi-border">
-      <h3 class="text-lg font-semibold text-morandi-text mb-4">新增行程 / 任務</h3>
-      <div class="space-y-3 text-sm">
-        <div>
-          <label class="block text-xs text-morandi-muted mb-1">任務名稱</label>
-          <input id="newTaskTitle" type="text" placeholder="輸入行程內容" class="w-full px-3 py-2 border border-morandi-border rounded-xl outline-none focus:border-morandi-text">
-        </div>
-        <div>
-          <label class="block text-xs text-morandi-muted mb-1">時間（選填）</label>
-          <input id="newTaskTime" type="text" placeholder="例如：14:00 - 15:30" class="w-full px-3 py-2 border border-morandi-border rounded-xl outline-none focus:border-morandi-text">
-        </div>
-        <div>
-          <label class="block text-xs text-morandi-muted mb-1">指定象限</label>
-          <select id="newTaskQuad" class="w-full px-3 py-2 border border-morandi-border rounded-xl outline-none bg-white">
-            <option value="1">象限 1</option>
-            <option value="2">象限 2</option>
-            <option value="3">象限 3</option>
-            <option value="4">象限 4</option>
-          </select>
-        </div>
-      </div>
-      <div class="mt-5 flex justify-end gap-2">
-        <button onclick="closeAddTaskModal()" class="px-4 py-2 border border-morandi-border text-morandi-muted rounded-xl text-xs">取消</button>
-        <button onclick="confirmAddTask()" class="px-4 py-2 bg-morandi-text text-white rounded-xl text-xs">確認新增</button>
       </div>
     </div>
   </div>
@@ -335,7 +303,6 @@
       4: "稍後思考"
     };
 
-    // 象限綁定的日曆 ID
     let quadCalendars = JSON.parse(localStorage.getItem('quad_calendars')) || {
       1: "primary",
       2: "none",
@@ -343,8 +310,7 @@
       4: "none"
     };
 
-    let userCalendars = []; // 使用者的所有子日曆
-    let localTasks = JSON.parse(localStorage.getItem('local_tasks')) || [];
+    let userCalendars = [];
     let googleEvents = [];
 
     /* ==========================================
@@ -366,13 +332,15 @@
 
     function updateDateHeader() {
       const days = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
-      const y = currentDate.getFullYear();
-      const m = currentDate.getMonth() + 1;
-      const d = currentDate.getDate();
-      const w = days[currentDate.getDay()];
-      
+      const start = new Date(currentDate);
+      const end = new Date(currentDate);
+      end.setDate(end.getDate() + 6); // 涵蓋當天起共 7 天
+
+      const formatDate = (d) => `${d.getMonth() + 1}/${d.getDate()}`;
       const isToday = new Date().toDateString() === currentDate.toDateString();
-      document.getElementById('currentDateDisplay').innerText = `${y}年 ${m}月 ${d}日 (${w}${isToday ? ' · 今天' : ''})`;
+
+      document.getElementById('currentDateDisplay').innerText = 
+        `${start.getFullYear()}年 ${formatDate(start)} (${days[start.getDay()]}) ~ ${formatDate(end)} (${days[end.getDay()]})${isToday ? ' · 本週' : ''}`;
     }
 
     function changeDay(delta) {
@@ -404,7 +372,7 @@
         const tag = document.getElementById(`q${i}CalTag`);
         const calId = quadCalendars[i];
         if (calId === 'none' || !calId) {
-          tag.innerText = "手動自訂";
+          tag.innerText = "未綁定";
           tag.className = "text-[11px] px-2 py-0.5 bg-morandi-subtle/50 text-morandi-muted rounded-md font-normal";
         } else {
           const found = userCalendars.find(c => c.id === calId);
@@ -433,11 +401,8 @@
               alert('Google 授權失敗：' + (response.error_description || response.error));
               return;
             }
-            console.log('[Google Auth Success] 取得 Access Token');
             accessToken = response.access_token;
             updateSyncStatus(true);
-            
-            // 授權成功後，先取得所有日曆列表，再抓取行程
             await loadUserCalendarList();
             await fetchEvents();
           },
@@ -472,7 +437,7 @@
 
       if (connected) {
         ind.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
-        txt.innerText = '已連線 Google 日曆';
+        txt.innerText = '已連線 Google 日曆 (未來一週)';
         txt.className = 'text-emerald-700 font-medium';
         modalTxt.innerText = '已連線成功';
         modalTxt.className = 'font-medium text-emerald-600';
@@ -502,8 +467,7 @@
         userCalendars = (data.items || []).map(c => ({
           id: c.id,
           summary: c.summaryOverride || c.summary,
-          primary: c.primary || false,
-          color: c.backgroundColor || '#7E99A3'
+          primary: c.primary || false
         }));
 
         populateCalendarSelectOptions();
@@ -516,7 +480,7 @@
     function populateCalendarSelectOptions() {
       for (let i = 1; i <= 4; i++) {
         const select = document.getElementById(`q${i}CalSelect`);
-        select.innerHTML = '<option value="none">-- 未指定 (手動新增) --</option>';
+        select.innerHTML = '<option value="none">-- 未指定 --</option>';
 
         userCalendars.forEach(cal => {
           const opt = document.createElement('option');
@@ -531,7 +495,7 @@
     }
 
     /* ==========================================
-       抓取 Google 日曆事件 (支援多日曆)
+       抓取 Google 日曆事件 (往後 7 天)
     ========================================== */
     async function fetchEvents() {
       const syncIcon = document.getElementById('syncIcon');
@@ -543,16 +507,17 @@
         return;
       }
 
+      // 起始時間：基準日 00:00:00
       const start = new Date(currentDate);
       start.setHours(0, 0, 0, 0);
+
+      // 結束時間：基準日 + 6 天 23:59:59 (整整 7 天視圖)
       const end = new Date(currentDate);
+      end.setDate(end.getDate() + 6);
       end.setHours(23, 59, 59, 999);
 
-      // 找出 4 個象限中所有有綁定的獨立日曆 ID
       const targetCalIds = Object.values(quadCalendars).filter(id => id && id !== 'none');
       const uniqueCalIds = [...new Set(targetCalIds)];
-
-      // 若都沒綁，至少抓取 primary
       if (uniqueCalIds.length === 0) uniqueCalIds.push('primary');
 
       googleEvents = [];
@@ -570,18 +535,34 @@
           const calName = calMeta ? calMeta.summary : (calId === 'primary' ? '主要日曆' : '日曆');
 
           return (data.items || []).map(ev => {
+            let dateText = "";
             let timeText = "全天";
+            let sortTimestamp = 0;
+
+            const days = ['日', '一', '二', '三', '四', '五', '六'];
+
             if (ev.start.dateTime) {
               const s = new Date(ev.start.dateTime);
               const e = new Date(ev.end.dateTime);
+              sortTimestamp = s.getTime();
+              dateText = `${s.getMonth() + 1}/${s.getDate()} (週${days[s.getDay()]})`;
               timeText = `${String(s.getHours()).padStart(2,'0')}:${String(s.getMinutes()).padStart(2,'0')} - ${String(e.getHours()).padStart(2,'0')}:${String(e.getMinutes()).padStart(2,'0')}`;
+            } else if (ev.start.date) {
+              const parts = ev.start.date.split('-');
+              const s = new Date(parts[0], parts[1] - 1, parts[2]);
+              sortTimestamp = s.getTime();
+              dateText = `${s.getMonth() + 1}/${s.getDate()} (週${days[s.getDay()]})`;
+              timeText = "全天";
             }
+
             return {
               id: ev.id,
               calendarId: calId,
               calendarName: calName,
               title: ev.summary || "(無標題)",
-              time: timeText,
+              dateText: dateText,
+              timeText: timeText,
+              sortTimestamp: sortTimestamp,
               location: ev.location || "",
               isGoogle: true
             };
@@ -589,7 +570,7 @@
         });
 
         const results = await Promise.all(promises);
-        googleEvents = results.flat();
+        googleEvents = results.flat().sort((a, b) => a.sortTimestamp - b.sortTimestamp);
 
         document.getElementById('lastSyncTime').innerText = `上次同步: ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
       } catch (err) {
@@ -613,30 +594,32 @@
       const badge = document.getElementById('timelineCountBadge');
       container.innerHTML = '';
 
-      const all = [...googleEvents, ...localTasks];
-      badge.innerText = `${all.length} 項行程`;
+      badge.innerText = `${googleEvents.length} 項行程`;
 
-      if (all.length === 0) {
+      if (googleEvents.length === 0) {
         container.innerHTML = `
           <div class="h-48 flex flex-col items-center justify-center text-morandi-muted text-xs">
             <i class="ph-bold ph-calendar-x text-3xl mb-2 opacity-40"></i>
-            <span>本日尚無排程事件</span>
+            <span>未來 7 天內尚無排程活動</span>
           </div>`;
         return;
       }
 
-      all.forEach(item => {
+      googleEvents.forEach(item => {
         const div = document.createElement('div');
-        div.className = "p-3 rounded-xl bg-morandi-bg/60 border border-morandi-border/60 hover:bg-morandi-subtle/30 transition flex flex-col gap-1";
+        div.className = "p-3 rounded-xl bg-morandi-bg/60 border border-morandi-border/60 hover:bg-morandi-subtle/30 transition flex flex-col gap-1.5";
         div.innerHTML = `
           <div class="flex items-center justify-between">
             <div class="font-medium text-sm text-morandi-text truncate">${escapeHtml(item.title)}</div>
-            ${item.isGoogle ? `<span class="text-[10px] px-2 py-0.5 bg-blue-100 text-blue-700 rounded font-medium">${escapeHtml(item.calendarName || 'Google')}</span>` : '<span class="text-[10px] px-2 py-0.5 bg-morandi-subtle text-morandi-muted rounded font-medium">自訂</span>'}
+            <span class="text-[10px] px-2 py-0.5 bg-blue-100 text-blue-700 rounded font-medium">${escapeHtml(item.calendarName || 'Google')}</span>
           </div>
-          <div class="flex items-center gap-2 text-xs text-morandi-muted">
-            <i class="ph-bold ph-clock"></i>
-            <span>${item.time || '未指定時間'}</span>
-            ${item.location ? `<span>·</span><span>${escapeHtml(item.location)}</span>` : ''}
+          <div class="flex items-center flex-wrap gap-2 text-xs text-morandi-muted">
+            <span class="font-semibold text-morandi-text/80 bg-white/70 px-1.5 py-0.5 rounded border border-morandi-border/40">${item.dateText}</span>
+            <div class="flex items-center gap-1">
+              <i class="ph-bold ph-clock"></i>
+              <span>${item.timeText}</span>
+            </div>
+            ${item.location ? `<span>·</span><span class="truncate max-w-[120px]">${escapeHtml(item.location)}</span>` : ''}
           </div>
         `;
         container.appendChild(div);
@@ -651,34 +634,31 @@
 
         const boundCalId = quadCalendars[q];
         
-        // 篩選屬於該象限的行程：
-        // 1. Google 事件：如果該象限有綁定日曆，且事件來自該日曆
-        // 2. 本機事件：手動指派為該象限的
-        const matchedGoogle = googleEvents.filter(ev => {
+        const qItems = googleEvents.filter(ev => {
           if (boundCalId === 'none' || !boundCalId) return false;
           if (boundCalId === 'primary') return ev.calendarId === 'primary' || (userCalendars.find(c => c.id === ev.calendarId)?.primary);
           return ev.calendarId === boundCalId;
         });
 
-        const matchedLocal = localTasks.filter(item => (item.quad || 1) === q);
-        const qItems = [...matchedGoogle, ...matchedLocal];
-
         badgeEl.innerText = qItems.length;
 
         if (qItems.length === 0) {
-          listEl.innerHTML = `<div class="h-32 flex items-center justify-center text-xs text-morandi-muted/60">無待辦事項</div>`;
+          listEl.innerHTML = `<div class="h-32 flex items-center justify-center text-xs text-morandi-muted/60">無排程項目</div>`;
           continue;
         }
 
         qItems.forEach(item => {
           const div = document.createElement('div');
-          div.className = "group flex items-center justify-between p-2 rounded-lg hover:bg-morandi-subtle/40 border border-transparent hover:border-morandi-border/40 transition text-sm";
+          div.className = "flex items-center justify-between p-2.5 rounded-xl bg-morandi-bg/40 hover:bg-morandi-subtle/40 border border-morandi-border/30 transition text-sm";
           div.innerHTML = `
             <div class="flex items-center gap-2 overflow-hidden">
-              <span class="w-1.5 h-1.5 rounded-full bg-morandi-text/40"></span>
-              <span class="truncate text-morandi-text">${escapeHtml(item.title)}</span>
+              <span class="w-1.5 h-1.5 rounded-full bg-morandi-text/40 shrink-0"></span>
+              <span class="truncate text-morandi-text font-medium">${escapeHtml(item.title)}</span>
             </div>
-            <span class="text-xs text-morandi-muted shrink-0 ml-2">${item.time || ''}</span>
+            <div class="flex items-center gap-1.5 text-xs text-morandi-muted shrink-0 ml-2">
+              <span class="font-medium text-morandi-text/70">${item.dateText.split(' ')[0]}</span>
+              <span>${item.timeText.split(' - ')[0]}</span>
+            </div>
           `;
           listEl.appendChild(div);
         });
@@ -708,7 +688,6 @@
       const id = document.getElementById('clientIdInput').value.trim();
       localStorage.setItem('gcal_client_id', id);
 
-      // 儲存四象限綁定的日曆
       for (let i = 1; i <= 4; i++) {
         quadCalendars[i] = document.getElementById(`q${i}CalSelect`).value;
       }
@@ -719,25 +698,10 @@
       fetchEvents();
     }
 
-    function openAddTaskModal() { document.getElementById('addTaskModal').classList.remove('hidden'); }
-    function closeAddTaskModal() { document.getElementById('addTaskModal').classList.add('hidden'); }
-    function confirmAddTask() {
-      const t = document.getElementById('newTaskTitle').value.trim();
-      const tm = document.getElementById('newTaskTime').value.trim();
-      const q = parseInt(document.getElementById('newTaskQuad').value, 10);
-      if (!t) return;
-
-      localTasks.push({ id: 'loc_' + Date.now(), title: t, time: tm, quad: q });
-      localStorage.setItem('local_tasks', JSON.stringify(localTasks));
-      document.getElementById('newTaskTitle').value = '';
-      document.getElementById('newTaskTime').value = '';
-      closeAddTaskModal();
-      renderAll();
-    }
-
     function resetDefaults() {
-      if (confirm('確定要重設所有象限標題與日曆綁定嗎？')) {
-        localStorage.clear();
+      if (confirm('確定要重設象限名稱與日曆綁定嗎？')) {
+        localStorage.removeItem('quad_titles');
+        localStorage.removeItem('quad_calendars');
         location.reload();
       }
     }
