@@ -23,10 +23,10 @@
               border: '#E2DDD5',
               text: '#3A3836',
               muted: '#7E7A75',
-              q1: '#D68C7A', // 暖陶土粉（緊急重要）
-              q2: '#7E99A3', // 霧霾灰藍（重要規劃）
-              q3: '#CCA675', // 溫潤薑黃（緊急待辦）
-              q4: '#8FA38D', // 鼠尾草綠（餘裕成長）
+              q1: '#D68C7A', // 暖陶土粉
+              q2: '#7E99A3', // 霧霾灰藍
+              q3: '#CCA675', // 溫潤薑黃
+              q4: '#8FA38D', // 鼠尾草綠
             }
           }
         }
@@ -64,7 +64,7 @@
         </div>
         <div>
           <h1 class="text-xl md:text-2xl font-semibold tracking-wide text-morandi-text">時間矩陣看板</h1>
-          <span class="text-[11px] text-morandi-muted">未來 7 天行程綜覽 · Google 日曆純讀取模式</span>
+          <span class="text-[11px] text-morandi-muted">未來 7 天視圖 · 支援 Google 日曆與待辦事項 (Tasks)</span>
         </div>
       </div>
 
@@ -86,10 +86,10 @@
       <div class="flex items-center gap-2.5">
         <button onclick="openConfigModal()" class="flex items-center gap-2 px-3.5 py-2 bg-white hover:bg-morandi-subtle border border-morandi-border text-morandi-text rounded-xl text-sm font-medium transition shadow-sm">
           <i class="ph-bold ph-sliders text-blue-600"></i>
-          <span>日曆綁定設定</span>
+          <span>來源綁定設定</span>
         </button>
 
-        <button onclick="fetchEvents()" title="即時同步 Google 日曆" class="p-2.5 bg-white hover:bg-morandi-subtle border border-morandi-border text-morandi-muted hover:text-morandi-text rounded-xl transition shadow-sm">
+        <button onclick="fetchAllData()" title="即時同步" class="p-2.5 bg-white hover:bg-morandi-subtle border border-morandi-border text-morandi-muted hover:text-morandi-text rounded-xl transition shadow-sm">
           <i class="ph-bold ph-arrows-clockwise text-base" id="syncIcon"></i>
         </button>
       </div>
@@ -100,25 +100,25 @@
   <!-- 主內容區 -->
   <main class="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 items-start">
     
-    <!-- 左側：一週日曆時間表 (4 欄寬) -->
+    <!-- 左側：一週日曆與待辦時間表 (4 欄寬) -->
     <section class="lg:col-span-4 bg-white/90 border border-morandi-border rounded-2xl p-5 shadow-sm flex flex-col h-full max-h-[760px]">
       <div class="flex items-center justify-between pb-4 border-b border-morandi-border/60 mb-3">
         <div class="flex items-center gap-2">
           <i class="ph-bold ph-calendar-blank text-lg text-morandi-muted"></i>
           <h2 class="text-lg font-semibold text-morandi-text">一週時間總表</h2>
         </div>
-        <span id="timelineCountBadge" class="text-xs px-2.5 py-1 bg-morandi-subtle text-morandi-muted rounded-full font-medium">0 項行程</span>
+        <span id="timelineCountBadge" class="text-xs px-2.5 py-1 bg-morandi-subtle text-morandi-muted rounded-full font-medium">0 項項目</span>
       </div>
 
       <div id="timelineList" class="space-y-3 overflow-y-auto custom-scrollbar flex-1 pr-1">
-        <!-- 動態注入時間表事件 -->
+        <!-- 動態注入時間表事件與待辦 -->
       </div>
 
       <!-- 狀態提示 -->
       <div class="pt-3 mt-2 border-t border-morandi-border/60 flex items-center justify-between text-xs text-morandi-muted">
         <div class="flex items-center gap-2">
           <span id="syncIndicator" class="w-2 h-2 rounded-full bg-morandi-muted/40"></span>
-          <span id="syncStatusText">未連動 Google 日曆</span>
+          <span id="syncStatusText">未連動 Google 帳號</span>
         </div>
         <span id="lastSyncTime"></span>
       </div>
@@ -198,13 +198,13 @@
     </button>
   </footer>
 
-  <!-- 設定與日曆綁定彈窗 (Modal) -->
+  <!-- 設定與資料來源綁定彈窗 (Modal) -->
   <div id="configModal" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-xl border border-morandi-border max-h-[90vh] overflow-y-auto custom-scrollbar">
       <div class="flex items-center justify-between pb-3 border-b border-morandi-border">
         <h3 class="text-lg font-semibold text-morandi-text flex items-center gap-2">
           <i class="ph-bold ph-sliders"></i>
-          <span>設定與日曆綁定</span>
+          <span>設定與來源綁定</span>
         </h3>
         <button onclick="closeConfigModal()" class="text-morandi-muted hover:text-morandi-text p-1">
           <i class="ph-bold ph-x text-lg"></i>
@@ -221,20 +221,20 @@
         <div class="p-3 bg-morandi-bg rounded-xl flex items-center justify-between">
           <div>
             <div class="font-medium text-morandi-text" id="modalAuthStatus">未授權</div>
-            <div class="text-xs text-morandi-muted" id="modalAuthSubtext">連線至您的 Google 帳戶以抓取日曆列表</div>
+            <div class="text-xs text-morandi-muted" id="modalAuthSubtext">連線至 Google 以存取日曆與 Tasks 待辦</div>
           </div>
           <button id="authBtn" onclick="requestGoogleAuth()" class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition">
             連動授權
           </button>
         </div>
 
-        <!-- 四象限日曆來源選擇區 -->
+        <!-- 四象限來源選擇區 -->
         <div class="pt-2 border-t border-morandi-border">
           <h4 class="font-medium text-morandi-text mb-2 flex items-center gap-1.5">
             <i class="ph-bold ph-intersect"></i>
-            <span>四象限對應 Google 日曆來源</span>
+            <span>四象限對應資料來源 (日曆 / Tasks 待辦)</span>
           </h4>
-          <p class="text-xs text-morandi-muted mb-3">請為各象限指定欲讀取的日曆（行程將自動抓取未來 7 天）：</p>
+          <p class="text-xs text-morandi-muted mb-3">各象限可自由綁定特定 Google 日曆或 Google Tasks 待辦清單：</p>
 
           <div class="space-y-2.5">
             <div class="flex items-center justify-between gap-3 bg-morandi-subtle/30 p-2.5 rounded-xl border border-morandi-border/60">
@@ -243,7 +243,7 @@
                 象限 1
               </span>
               <select id="q1CalSelect" class="cal-select flex-1 text-xs border border-morandi-border rounded-lg p-1.5 bg-white outline-none">
-                <option value="primary">主要日曆 (預設)</option>
+                <option value="cal:primary">日曆：主要日曆 (預設)</option>
               </select>
             </div>
 
@@ -303,15 +303,16 @@
       4: "稍後思考"
     };
 
-    let quadCalendars = JSON.parse(localStorage.getItem('quad_calendars')) || {
-      1: "primary",
+    let quadSources = JSON.parse(localStorage.getItem('quad_sources')) || {
+      1: "cal:primary",
       2: "none",
       3: "none",
       4: "none"
     };
 
     let userCalendars = [];
-    let googleEvents = [];
+    let userTaskLists = [];
+    let combinedItems = []; // 整合日曆行程與 Tasks 待辦
 
     /* ==========================================
        初始化
@@ -334,7 +335,7 @@
       const days = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
       const start = new Date(currentDate);
       const end = new Date(currentDate);
-      end.setDate(end.getDate() + 6); // 涵蓋當天起共 7 天
+      end.setDate(end.getDate() + 6);
 
       const formatDate = (d) => `${d.getMonth() + 1}/${d.getDate()}`;
       const isToday = new Date().toDateString() === currentDate.toDateString();
@@ -346,13 +347,13 @@
     function changeDay(delta) {
       currentDate.setDate(currentDate.getDate() + delta);
       updateDateHeader();
-      fetchEvents();
+      fetchAllData();
     }
 
     function resetToToday() {
       currentDate = new Date();
       updateDateHeader();
-      fetchEvents();
+      fetchAllData();
     }
 
     function loadQuadTitlesUI() {
@@ -370,14 +371,20 @@
     function updateQuadTagsUI() {
       for (let i = 1; i <= 4; i++) {
         const tag = document.getElementById(`q${i}CalTag`);
-        const calId = quadCalendars[i];
-        if (calId === 'none' || !calId) {
+        const srcId = quadSources[i];
+        if (!srcId || srcId === 'none') {
           tag.innerText = "未綁定";
           tag.className = "text-[11px] px-2 py-0.5 bg-morandi-subtle/50 text-morandi-muted rounded-md font-normal";
-        } else {
+        } else if (srcId.startsWith('cal:')) {
+          const calId = srcId.replace('cal:', '');
           const found = userCalendars.find(c => c.id === calId);
-          tag.innerText = found ? found.summary : (calId === 'primary' ? '主要日曆' : '已綁定');
+          tag.innerText = found ? found.summary : (calId === 'primary' ? '主要日曆' : '日曆');
           tag.className = "text-[11px] px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md font-medium truncate max-w-[100px]";
+        } else if (srcId.startsWith('task:')) {
+          const listId = srcId.replace('task:', '');
+          const found = userTaskLists.find(t => t.id === listId);
+          tag.innerText = found ? `待辦: ${found.title}` : '待辦事項';
+          tag.className = "text-[11px] px-2 py-0.5 bg-amber-50 text-amber-800 rounded-md font-medium truncate max-w-[100px]";
         }
       }
     }
@@ -394,7 +401,7 @@
       try {
         tokenClient = google.accounts.oauth2.initTokenClient({
           client_id: clientId,
-          scope: 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events.readonly',
+          scope: 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events.readonly https://www.googleapis.com/auth/tasks.readonly',
           callback: async (response) => {
             if (response.error) {
               console.error('[Google Auth Error]', response);
@@ -403,8 +410,8 @@
             }
             accessToken = response.access_token;
             updateSyncStatus(true);
-            await loadUserCalendarList();
-            await fetchEvents();
+            await loadAllMetaLists();
+            await fetchAllData();
           },
         });
       } catch (err) {
@@ -437,14 +444,14 @@
 
       if (connected) {
         ind.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
-        txt.innerText = '已連線 Google 日曆 (未來一週)';
+        txt.innerText = '已連線 Google 日曆 & 待辦事項';
         txt.className = 'text-emerald-700 font-medium';
         modalTxt.innerText = '已連線成功';
         modalTxt.className = 'font-medium text-emerald-600';
         authBtn.innerText = '重新授權';
       } else {
         ind.className = 'w-2 h-2 rounded-full bg-morandi-muted/40';
-        txt.innerText = '未連動 Google 日曆';
+        txt.innerText = '未連動 Google 帳號';
         txt.className = 'text-morandi-muted';
         modalTxt.innerText = '未授權';
         modalTxt.className = 'font-medium text-morandi-text';
@@ -453,51 +460,87 @@
     }
 
     /* ==========================================
-       取得日曆清單 (CalendarList)
+       取得日曆清單與 Tasks 待辦清單清冊
     ========================================== */
-    async function loadUserCalendarList() {
+    async function loadAllMetaLists() {
       if (!accessToken) return;
 
       try {
-        const res = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
+        // 1. 取得日曆清冊
+        const calRes = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
           headers: { Authorization: `Bearer ${accessToken}` }
         });
-        if (!res.ok) throw new Error('無法取得日曆清單');
-        const data = await res.json();
-        userCalendars = (data.items || []).map(c => ({
-          id: c.id,
-          summary: c.summaryOverride || c.summary,
-          primary: c.primary || false
-        }));
+        if (calRes.ok) {
+          const calData = await calRes.json();
+          userCalendars = (calData.items || []).map(c => ({
+            id: c.id,
+            summary: c.summaryOverride || c.summary,
+            primary: c.primary || false
+          }));
+        }
 
-        populateCalendarSelectOptions();
+        // 2. 取得 Google Tasks 清冊
+        const taskRes = await fetch('https://tasks.googleapis.com/tasks/v1/users/@me/lists', {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        if (taskRes.ok) {
+          const taskData = await taskRes.json();
+          userTaskLists = (taskData.items || []).map(t => ({
+            id: t.id,
+            title: t.title
+          }));
+        }
+
+        populateSelectOptions();
         updateQuadTagsUI();
       } catch (err) {
-        console.error('[CalendarList Error]', err);
+        console.error('[MetaLists Error]', err);
       }
     }
 
-    function populateCalendarSelectOptions() {
+    function populateSelectOptions() {
       for (let i = 1; i <= 4; i++) {
         const select = document.getElementById(`q${i}CalSelect`);
         select.innerHTML = '<option value="none">-- 未指定 --</option>';
 
-        userCalendars.forEach(cal => {
-          const opt = document.createElement('option');
-          opt.value = cal.id;
-          opt.innerText = `${cal.summary} ${cal.primary ? '(主要日曆)' : ''}`;
-          if (quadCalendars[i] === cal.id || (quadCalendars[i] === 'primary' && cal.primary)) {
-            opt.selected = true;
-          }
-          select.appendChild(opt);
-        });
+        // 日曆分組
+        if (userCalendars.length > 0) {
+          const optGroupCal = document.createElement('optgroup');
+          optGroupCal.label = "📅 Google 日曆";
+          userCalendars.forEach(cal => {
+            const opt = document.createElement('option');
+            opt.value = `cal:${cal.id}`;
+            opt.innerText = `${cal.summary} ${cal.primary ? '(主要日曆)' : ''}`;
+            if (quadSources[i] === `cal:${cal.id}` || (quadSources[i] === 'cal:primary' && cal.primary)) {
+              opt.selected = true;
+            }
+            optGroupCal.appendChild(opt);
+          });
+          select.appendChild(optGroupCal);
+        }
+
+        // Tasks 待辦分組
+        if (userTaskLists.length > 0) {
+          const optGroupTask = document.createElement('optgroup');
+          optGroupTask.label = "✅ Google Tasks 待辦清單";
+          userTaskLists.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = `task:${t.id}`;
+            opt.innerText = t.title;
+            if (quadSources[i] === `task:${t.id}`) {
+              opt.selected = true;
+            }
+            optGroupTask.appendChild(opt);
+          });
+          select.appendChild(optGroupTask);
+        }
       }
     }
 
     /* ==========================================
-       抓取 Google 日曆事件 (往後 7 天)
+       抓取 Google 日曆行程與 Tasks 待辦事項
     ========================================== */
-    async function fetchEvents() {
+    async function fetchAllData() {
       const syncIcon = document.getElementById('syncIcon');
       if (syncIcon) syncIcon.classList.add('animate-spin');
 
@@ -507,30 +550,36 @@
         return;
       }
 
-      // 起始時間：基準日 00:00:00
       const start = new Date(currentDate);
       start.setHours(0, 0, 0, 0);
 
-      // 結束時間：基準日 + 6 天 23:59:59 (整整 7 天視圖)
       const end = new Date(currentDate);
       end.setDate(end.getDate() + 6);
       end.setHours(23, 59, 59, 999);
 
-      const targetCalIds = Object.values(quadCalendars).filter(id => id && id !== 'none');
-      const uniqueCalIds = [...new Set(targetCalIds)];
-      if (uniqueCalIds.length === 0) uniqueCalIds.push('primary');
-
-      googleEvents = [];
+      const days = ['日', '一', '二', '三', '四', '五', '六'];
+      combinedItems = [];
 
       try {
-        const promises = uniqueCalIds.map(async (calId) => {
+        // 找出所有需要的 日曆 ID 與 Tasks 清單 ID
+        const activeSources = Object.values(quadSources).filter(s => s && s !== 'none');
+        
+        let targetCalIds = activeSources.filter(s => s.startsWith('cal:')).map(s => s.replace('cal:', ''));
+        let targetTaskIds = activeSources.filter(s => s.startsWith('task:')).map(s => s.replace('task:', ''));
+
+        // 若完全沒綁定，預設抓主要日曆
+        if (targetCalIds.length === 0 && targetTaskIds.length === 0) targetCalIds.push('primary');
+
+        targetCalIds = [...new Set(targetCalIds)];
+        targetTaskIds = [...new Set(targetTaskIds)];
+
+        // A. 抓取日曆行程
+        const calPromises = targetCalIds.map(async (calId) => {
           const encodedId = encodeURIComponent(calId);
           const url = `https://www.googleapis.com/calendar/v3/calendars/${encodedId}/events?timeMin=${start.toISOString()}&timeMax=${end.toISOString()}&singleEvents=true&orderBy=startTime`;
-          
           const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
           if (!res.ok) return [];
           const data = await res.json();
-          
           const calMeta = userCalendars.find(c => c.id === calId);
           const calName = calMeta ? calMeta.summary : (calId === 'primary' ? '主要日曆' : '日曆');
 
@@ -538,8 +587,6 @@
             let dateText = "";
             let timeText = "全天";
             let sortTimestamp = 0;
-
-            const days = ['日', '一', '二', '三', '四', '五', '六'];
 
             if (ev.start.dateTime) {
               const s = new Date(ev.start.dateTime);
@@ -557,24 +604,61 @@
 
             return {
               id: ev.id,
-              calendarId: calId,
-              calendarName: calName,
+              sourceType: 'cal',
+              sourceId: calId,
+              sourceLabel: calName,
               title: ev.summary || "(無標題)",
               dateText: dateText,
               timeText: timeText,
               sortTimestamp: sortTimestamp,
-              location: ev.location || "",
-              isGoogle: true
+              location: ev.location || ""
             };
           });
         });
 
-        const results = await Promise.all(promises);
-        googleEvents = results.flat().sort((a, b) => a.sortTimestamp - b.sortTimestamp);
+        // B. 抓取 Tasks 待辦事項
+        const taskPromises = targetTaskIds.map(async (listId) => {
+          const url = `https://tasks.googleapis.com/tasks/v1/lists/${encodeURIComponent(listId)}/tasks?showCompleted=false&dueMin=${start.toISOString()}&dueMax=${end.toISOString()}`;
+          const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
+          if (!res.ok) return [];
+          const data = await res.json();
+          const listMeta = userTaskLists.find(t => t.id === listId);
+          const listName = listMeta ? listMeta.title : '待辦清單';
+
+          return (data.items || []).map(t => {
+            let dateText = "待辦";
+            let sortTimestamp = start.getTime();
+
+            if (t.due) {
+              const d = new Date(t.due);
+              sortTimestamp = d.getTime();
+              dateText = `${d.getMonth() + 1}/${d.getDate()} (週${days[d.getDay()]})`;
+            }
+
+            return {
+              id: t.id,
+              sourceType: 'task',
+              sourceId: listId,
+              sourceLabel: listName,
+              title: t.title || "(無標題待辦)",
+              dateText: dateText,
+              timeText: "待辦事項",
+              sortTimestamp: sortTimestamp,
+              location: ""
+            };
+          });
+        });
+
+        const [calResults, taskResults] = await Promise.all([
+          Promise.all(calPromises),
+          Promise.all(taskPromises)
+        ]);
+
+        combinedItems = [...calResults.flat(), ...taskResults.flat()].sort((a, b) => a.sortTimestamp - b.sortTimestamp);
 
         document.getElementById('lastSyncTime').innerText = `上次同步: ${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
       } catch (err) {
-        console.error('[Google Calendar Fetch Error]', err);
+        console.error('[FetchAllData Error]', err);
       } finally {
         if (syncIcon) syncIcon.classList.remove('animate-spin');
         renderAll();
@@ -594,29 +678,33 @@
       const badge = document.getElementById('timelineCountBadge');
       container.innerHTML = '';
 
-      badge.innerText = `${googleEvents.length} 項行程`;
+      badge.innerText = `${combinedItems.length} 項項目`;
 
-      if (googleEvents.length === 0) {
+      if (combinedItems.length === 0) {
         container.innerHTML = `
           <div class="h-48 flex flex-col items-center justify-center text-morandi-muted text-xs">
             <i class="ph-bold ph-calendar-x text-3xl mb-2 opacity-40"></i>
-            <span>未來 7 天內尚無排程活動</span>
+            <span>未來 7 天內尚無行程或待辦</span>
           </div>`;
         return;
       }
 
-      googleEvents.forEach(item => {
+      combinedItems.forEach(item => {
         const div = document.createElement('div');
         div.className = "p-3 rounded-xl bg-morandi-bg/60 border border-morandi-border/60 hover:bg-morandi-subtle/30 transition flex flex-col gap-1.5";
+        
+        const isTask = item.sourceType === 'task';
+        const badgeClass = isTask ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-700';
+
         div.innerHTML = `
           <div class="flex items-center justify-between">
             <div class="font-medium text-sm text-morandi-text truncate">${escapeHtml(item.title)}</div>
-            <span class="text-[10px] px-2 py-0.5 bg-blue-100 text-blue-700 rounded font-medium">${escapeHtml(item.calendarName || 'Google')}</span>
+            <span class="text-[10px] px-2 py-0.5 rounded font-medium ${badgeClass}">${escapeHtml(item.sourceLabel)}</span>
           </div>
           <div class="flex items-center flex-wrap gap-2 text-xs text-morandi-muted">
             <span class="font-semibold text-morandi-text/80 bg-white/70 px-1.5 py-0.5 rounded border border-morandi-border/40">${item.dateText}</span>
             <div class="flex items-center gap-1">
-              <i class="ph-bold ph-clock"></i>
+              <i class="ph-bold ${isTask ? 'ph-check-square' : 'ph-clock'}"></i>
               <span>${item.timeText}</span>
             </div>
             ${item.location ? `<span>·</span><span class="truncate max-w-[120px]">${escapeHtml(item.location)}</span>` : ''}
@@ -632,12 +720,20 @@
         const badgeEl = document.getElementById(`q${q}Badge`);
         listEl.innerHTML = '';
 
-        const boundCalId = quadCalendars[q];
+        const srcBinding = quadSources[q];
         
-        const qItems = googleEvents.filter(ev => {
-          if (boundCalId === 'none' || !boundCalId) return false;
-          if (boundCalId === 'primary') return ev.calendarId === 'primary' || (userCalendars.find(c => c.id === ev.calendarId)?.primary);
-          return ev.calendarId === boundCalId;
+        const qItems = combinedItems.filter(item => {
+          if (!srcBinding || srcBinding === 'none') return false;
+          if (srcBinding.startsWith('cal:')) {
+            const calId = srcBinding.replace('cal:', '');
+            if (item.sourceType !== 'cal') return false;
+            if (calId === 'primary') return item.sourceId === 'primary' || (userCalendars.find(c => c.id === item.sourceId)?.primary);
+            return item.sourceId === calId;
+          } else if (srcBinding.startsWith('task:')) {
+            const taskId = srcBinding.replace('task:', '');
+            return item.sourceType === 'task' && item.sourceId === taskId;
+          }
+          return false;
         });
 
         badgeEl.innerText = qItems.length;
@@ -674,8 +770,8 @@
        彈窗控制與設定儲存
     ========================================== */
     function openConfigModal() {
-      if (userCalendars.length > 0) {
-        populateCalendarSelectOptions();
+      if (userCalendars.length > 0 || userTaskLists.length > 0) {
+        populateSelectOptions();
       }
       document.getElementById('configModal').classList.remove('hidden');
     }
@@ -689,19 +785,19 @@
       localStorage.setItem('gcal_client_id', id);
 
       for (let i = 1; i <= 4; i++) {
-        quadCalendars[i] = document.getElementById(`q${i}CalSelect`).value;
+        quadSources[i] = document.getElementById(`q${i}CalSelect`).value;
       }
-      localStorage.setItem('quad_calendars', JSON.stringify(quadCalendars));
+      localStorage.setItem('quad_sources', JSON.stringify(quadSources));
 
       updateQuadTagsUI();
       closeConfigModal();
-      fetchEvents();
+      fetchAllData();
     }
 
     function resetDefaults() {
-      if (confirm('確定要重設象限名稱與日曆綁定嗎？')) {
+      if (confirm('確定要重設象限名稱與綁定設定嗎？')) {
         localStorage.removeItem('quad_titles');
-        localStorage.removeItem('quad_calendars');
+        localStorage.removeItem('quad_sources');
         location.reload();
       }
     }
