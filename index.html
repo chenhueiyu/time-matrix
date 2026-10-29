@@ -64,7 +64,7 @@
         </div>
         <div>
           <h1 class="text-xl md:text-2xl font-semibold tracking-wide text-morandi-text">時間矩陣看板</h1>
-          <span class="text-[11px] text-morandi-muted">未來 7 天視圖 · 支援 Google 日曆與 Google Tasks 待辦</span>
+          <span class="text-[11px] text-morandi-muted">自最近行程起之一週視圖 · 日期階梯漸層底色</span>
         </div>
       </div>
 
@@ -197,7 +197,7 @@
     </button>
   </footer>
 
-  <!-- 設定與來源綁定彈窗 (Modal) -->
+  <!-- 設定與資料來源綁定彈窗 (Modal) -->
   <div id="configModal" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-xl border border-morandi-border max-h-[90vh] overflow-y-auto custom-scrollbar">
       <div class="flex items-center justify-between pb-3 border-b border-morandi-border">
@@ -493,7 +493,6 @@
           }));
         }
 
-        // 讀取 Tasks 待辦清冊
         const taskRes = await fetch('https://tasks.googleapis.com/tasks/v1/users/@me/lists', {
           headers: { Authorization: `Bearer ${accessToken}` }
         });
@@ -503,9 +502,6 @@
             id: t.id,
             title: t.title
           }));
-          console.log('[Tasks Lists Loaded]', userTaskLists);
-        } else {
-          console.warn('[Tasks API Error]', await taskRes.text());
         }
 
         populateSelectOptions();
@@ -599,19 +595,23 @@
             let dateText = "";
             let timeText = "全天";
             let sortTimestamp = 0;
+            let eventDate = null;
+            let isAllDay = false;
 
             if (ev.start.dateTime) {
               const s = new Date(ev.start.dateTime);
               const e = new Date(ev.end.dateTime);
+              eventDate = new Date(s.getFullYear(), s.getMonth(), s.getDate());
               sortTimestamp = s.getTime();
               dateText = `${s.getMonth() + 1}/${s.getDate()} (週${days[s.getDay()]})`;
               timeText = `${String(s.getHours()).padStart(2,'0')}:${String(s.getMinutes()).padStart(2,'0')} - ${String(e.getHours()).padStart(2,'0')}:${String(e.getMinutes()).padStart(2,'0')}`;
             } else if (ev.start.date) {
               const parts = ev.start.date.split('-');
-              const s = new Date(parts[0], parts[1] - 1, parts[2]);
-              sortTimestamp = s.getTime();
-              dateText = `${s.getMonth() + 1}/${s.getDate()} (週${days[s.getDay()]})`;
+              eventDate = new Date(parts[0], parts[1] - 1, parts[2]);
+              sortTimestamp = eventDate.getTime();
+              dateText = `${eventDate.getMonth() + 1}/${eventDate.getDate()} (週${days[eventDate.getDay()]})`;
               timeText = "全天";
+              isAllDay = true;
             }
 
             return {
@@ -623,12 +623,14 @@
               dateText: dateText,
               timeText: timeText,
               sortTimestamp: sortTimestamp,
+              eventDate: eventDate,
+              isAllDay: isAllDay,
               location: ev.location || ""
             };
           });
         });
 
-        // B. 抓取 Tasks 待辦事項 (抓取全部未完成事項，不設嚴苛 due 日期篩選)
+        // B. 抓取 Tasks 待辦事項
         const taskPromises = targetTaskIds.map(async (listId) => {
           const url = `https://tasks.googleapis.com/tasks/v1/lists/${encodeURIComponent(listId)}/tasks?showCompleted=false&maxResults=100`;
           const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
@@ -640,9 +642,11 @@
           return (data.items || []).filter(t => t.title && t.title.trim() !== '').map(t => {
             let dateText = "待辦";
             let sortTimestamp = start.getTime();
+            let eventDate = null;
 
             if (t.due) {
               const d = new Date(t.due);
+              eventDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
               sortTimestamp = d.getTime();
               dateText = `${d.getMonth() + 1}/${d.getDate()} (週${days[d.getDay()]})`;
             }
@@ -656,6 +660,8 @@
               dateText: dateText,
               timeText: t.due ? "指定日期" : "隨時待辦",
               sortTimestamp: sortTimestamp,
+              eventDate: eventDate,
+              isAllDay: false,
               location: ""
             };
           });
@@ -674,6 +680,53 @@
       } finally {
         if (syncIcon) syncIcon.classList.remove('animate-spin');
         renderAll();
+      }
+    }
+
+    /* ==========================================
+       動態計算莫蘭迪階梯底色核心函式
+    ========================================== */
+    function getItemCardStyles(item) {
+      // 基準日以 00:00:00 計算天數差異
+      const baseDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate()).getTime();
+      let diffDays = 0;
+
+      if (item.eventDate) {
+        const itemDay = new Date(item.eventDate.getFullYear(), item.eventDate.getMonth(), item.eventDate.getDate()).getTime();
+        diffDays = Math.round((itemDay - baseDay) / (1000 * 60 * 60 * 24));
+        if (diffDays < 0) diffDays = 0;
+      }
+
+      // 1. 全日活動（底色加深更多，凸顯重要或佔滿整天之特性）
+      if (item.isAllDay) {
+        if (diffDays === 0) {
+          // 今天全日
+          return "background-color: #E6E1D8; border-color: #D3CCC0;";
+        } else if (diffDays === 1) {
+          // 明天全日
+          return "background-color: #DDD7CE; border-color: #CAC2B5;";
+        } else if (diffDays === 2) {
+          // 後天全日
+          return "background-color: #D5CEBF; border-color: #C0B7A6;";
+        } else {
+          // 3 天以上全日
+          return "background-color: #CCC4B4; border-color: #B5AB99;";
+        }
+      }
+
+      // 2. 一般時段活動與待辦（隨日期漸進加深）
+      if (diffDays === 0) {
+        // 今天 / 基準日：原來的淡雅米白底色
+        return "background-color: #FDFBF8; border-color: #E8E4DC;";
+      } else if (diffDays === 1) {
+        // 隔天：溫暖微加深
+        return "background-color: #F3EFE9; border-color: #E2DDD5;";
+      } else if (diffDays === 2) {
+        // 再隔天：進一步加深
+        return "background-color: #EBE5DC; border-color: #D8D1C6;";
+      } else {
+        // 3 天以上：沉穩莫蘭迪灰褐底色
+        return "background-color: #E2DBD0; border-color: #CDC5B7;";
       }
     }
 
@@ -703,18 +756,25 @@
 
       combinedItems.forEach(item => {
         const div = document.createElement('div');
-        div.className = "p-3 rounded-xl bg-morandi-bg/60 border border-morandi-border/60 hover:bg-morandi-subtle/30 transition flex flex-col gap-1.5";
-        
         const isTask = item.sourceType === 'task';
         const badgeClass = isTask ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-700';
+        
+        // 取得動態深淺底色
+        const customStyle = getItemCardStyles(item);
+
+        div.className = "p-3 rounded-xl border transition flex flex-col gap-1.5 shadow-sm hover:brightness-95";
+        div.style = customStyle;
 
         div.innerHTML = `
           <div class="flex items-center justify-between">
             <div class="font-medium text-sm text-morandi-text truncate">${escapeHtml(item.title)}</div>
-            <span class="text-[10px] px-2 py-0.5 rounded font-medium ${badgeClass}">${escapeHtml(item.sourceLabel)}</span>
+            <div class="flex items-center gap-1">
+              ${item.isAllDay ? '<span class="text-[10px] px-1.5 py-0.5 bg-morandi-text/10 text-morandi-text rounded font-semibold">整天</span>' : ''}
+              <span class="text-[10px] px-2 py-0.5 rounded font-medium ${badgeClass}">${escapeHtml(item.sourceLabel)}</span>
+            </div>
           </div>
           <div class="flex items-center flex-wrap gap-2 text-xs text-morandi-muted">
-            <span class="font-semibold text-morandi-text/80 bg-white/70 px-1.5 py-0.5 rounded border border-morandi-border/40">${item.dateText}</span>
+            <span class="font-semibold text-morandi-text/80 bg-white/70 px-1.5 py-0.5 rounded border border-morandi-border/50">${item.dateText}</span>
             <div class="flex items-center gap-1">
               <i class="ph-bold ${isTask ? 'ph-check-square' : 'ph-clock'}"></i>
               <span>${item.timeText}</span>
@@ -757,14 +817,18 @@
 
         qItems.forEach(item => {
           const div = document.createElement('div');
-          div.className = "flex items-center justify-between p-2.5 rounded-xl bg-morandi-bg/40 hover:bg-morandi-subtle/40 border border-morandi-border/30 transition text-sm";
+          const customStyle = getItemCardStyles(item);
+
+          div.className = "flex items-center justify-between p-2.5 rounded-xl border transition text-sm shadow-2xs hover:brightness-95";
+          div.style = customStyle;
+
           div.innerHTML = `
             <div class="flex items-center gap-2 overflow-hidden">
-              <span class="w-1.5 h-1.5 rounded-full bg-morandi-text/40 shrink-0"></span>
+              <span class="w-1.5 h-1.5 rounded-full bg-morandi-text/50 shrink-0"></span>
               <span class="truncate text-morandi-text font-medium">${escapeHtml(item.title)}</span>
             </div>
             <div class="flex items-center gap-1.5 text-xs text-morandi-muted shrink-0 ml-2">
-              <span class="font-medium text-morandi-text/70">${item.dateText.split(' ')[0]}</span>
+              <span class="font-medium text-morandi-text/75 bg-white/50 px-1 py-0.5 rounded">${item.dateText.split(' ')[0]}</span>
               <span>${item.timeText.split(' - ')[0]}</span>
             </div>
           `;
