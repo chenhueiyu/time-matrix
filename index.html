@@ -64,7 +64,7 @@
         </div>
         <div>
           <h1 class="text-xl md:text-2xl font-semibold tracking-wide text-morandi-text">時間矩陣看板</h1>
-          <span class="text-[11px] text-morandi-muted">自最近行程起之一週視圖 · 純讀取監控台</span>
+          <span class="text-[11px] text-morandi-muted">未來 7 天視圖 · 支援 Google 日曆與 Google Tasks 待辦</span>
         </div>
       </div>
 
@@ -197,7 +197,7 @@
     </button>
   </footer>
 
-  <!-- 設定與資料來源綁定彈窗 (Modal) -->
+  <!-- 設定與來源綁定彈窗 (Modal) -->
   <div id="configModal" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-xl border border-morandi-border max-h-[90vh] overflow-y-auto custom-scrollbar">
       <div class="flex items-center justify-between pb-3 border-b border-morandi-border">
@@ -290,8 +290,8 @@
     /* ==========================================
        狀態與預設資料
     ========================================== */
-    let currentDate = new Date(); // 當前視圖的起始基準日
-    let isAnchorNearest = true;   // 是否處於最近行程錨定模式
+    let currentDate = new Date();
+    let isAnchorNearest = true;
     let accessToken = null;
     let tokenClient = null;
 
@@ -334,7 +334,7 @@
       const days = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
       const start = new Date(currentDate);
       const end = new Date(currentDate);
-      end.setDate(end.getDate() + 6); // 往後推整整 7 天視圖
+      end.setDate(end.getDate() + 6);
 
       const formatDate = (d) => `${d.getMonth() + 1}/${d.getDate()}`;
       const statusSuffix = isAnchorNearest ? ' · 最近行程起始' : '';
@@ -372,7 +372,7 @@
             accessToken = response.access_token;
             updateSyncStatus(true);
             await loadAllMetaLists();
-            await alignToNearestEvent(); // 授權後直接定位到最近行程
+            await alignToNearestEvent();
           },
         });
       } catch (err) {
@@ -405,7 +405,7 @@
 
       if (connected) {
         ind.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
-        txt.innerText = '已連線 (最近一週行程)';
+        txt.innerText = '已連線 (日曆與 Tasks 待辦)';
         txt.className = 'text-emerald-700 font-medium';
         modalTxt.innerText = '已連線成功';
         modalTxt.className = 'font-medium text-emerald-600';
@@ -421,7 +421,7 @@
     }
 
     /* ==========================================
-       自動尋找並對齊「最近一筆行程」為起始基準
+       自動尋找最近行程以對齊視圖
     ========================================== */
     async function alignToNearestEvent() {
       isAnchorNearest = true;
@@ -437,7 +437,6 @@
 
       try {
         const now = new Date();
-        // 抓取未來 30 天內最近的一筆事件來做對齊錨點
         const maxCheck = new Date(now);
         maxCheck.setDate(maxCheck.getDate() + 30);
 
@@ -465,10 +464,9 @@
         if (earliestTime) {
           currentDate = new Date(earliestTime);
         } else {
-          currentDate = new Date(); // 若無即將發生的行程，以今天為起點
+          currentDate = new Date();
         }
       } catch (e) {
-        console.warn('尋找最近行程失敗，使用今天為起點', e);
         currentDate = new Date();
       }
 
@@ -495,6 +493,7 @@
           }));
         }
 
+        // 讀取 Tasks 待辦清冊
         const taskRes = await fetch('https://tasks.googleapis.com/tasks/v1/users/@me/lists', {
           headers: { Authorization: `Bearer ${accessToken}` }
         });
@@ -504,6 +503,9 @@
             id: t.id,
             title: t.title
           }));
+          console.log('[Tasks Lists Loaded]', userTaskLists);
+        } else {
+          console.warn('[Tasks API Error]', await taskRes.text());
         }
 
         populateSelectOptions();
@@ -551,7 +553,7 @@
     }
 
     /* ==========================================
-       抓取 Google 日曆行程與 Tasks 待辦事項 (基準日往後一週)
+       抓取 Google 日曆行程與 Tasks 待辦事項
     ========================================== */
     async function fetchAllData() {
       const syncIcon = document.getElementById('syncIcon');
@@ -626,16 +628,16 @@
           });
         });
 
-        // B. 抓取 Tasks 待辦事項
+        // B. 抓取 Tasks 待辦事項 (抓取全部未完成事項，不設嚴苛 due 日期篩選)
         const taskPromises = targetTaskIds.map(async (listId) => {
-          const url = `https://tasks.googleapis.com/tasks/v1/lists/${encodeURIComponent(listId)}/tasks?showCompleted=false&dueMin=${start.toISOString()}&dueMax=${end.toISOString()}`;
+          const url = `https://tasks.googleapis.com/tasks/v1/lists/${encodeURIComponent(listId)}/tasks?showCompleted=false&maxResults=100`;
           const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
           if (!res.ok) return [];
           const data = await res.json();
           const listMeta = userTaskLists.find(t => t.id === listId);
           const listName = listMeta ? listMeta.title : '待辦清單';
 
-          return (data.items || []).map(t => {
+          return (data.items || []).filter(t => t.title && t.title.trim() !== '').map(t => {
             let dateText = "待辦";
             let sortTimestamp = start.getTime();
 
@@ -650,9 +652,9 @@
               sourceType: 'task',
               sourceId: listId,
               sourceLabel: listName,
-              title: t.title || "(無標題待辦)",
+              title: t.title,
               dateText: dateText,
-              timeText: "待辦事項",
+              timeText: t.due ? "指定日期" : "隨時待辦",
               sortTimestamp: sortTimestamp,
               location: ""
             };
@@ -694,7 +696,7 @@
         container.innerHTML = `
           <div class="h-48 flex flex-col items-center justify-center text-morandi-muted text-xs">
             <i class="ph-bold ph-calendar-x text-3xl mb-2 opacity-40"></i>
-            <span>選定之一週內尚無排程或待辦</span>
+            <span>選定視圖內尚無排程或待辦</span>
           </div>`;
         return;
       }
